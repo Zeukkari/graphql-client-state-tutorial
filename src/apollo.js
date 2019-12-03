@@ -6,11 +6,7 @@ const cache = new InMemoryCache();
 
 const GITHUB_BASE_URL = 'https://api.github.com/graphql';
 
-
-
-
-
-export const toggleSelectRepository = (_, { id, isSelected }, { cache }) => {
+export const toggleSelectRepository = (_, { id, isSelected, __typename }, { cache }) => {
   let { selectedRepositoryIds } = cache.readQuery({
     query: GET_SELECTED_REPOSITORIES,
   });
@@ -21,10 +17,10 @@ export const toggleSelectRepository = (_, { id, isSelected }, { cache }) => {
 
   cache.writeQuery({
     query: GET_SELECTED_REPOSITORIES,
-    data: { selectedRepositoryIds, count: 2 },
+    data: { selectedRepositoryIds, count: selectedRepositoryIds.length, __typename: 'store' },
   });
 
-  return { id, isSelected: !isSelected };
+  return { id, isSelected: !isSelected, __typename };
 };
 
 
@@ -78,8 +74,8 @@ export const GET_COUNT = gql`
 // Local Mutation
 
 export const SELECT_REPOSITORY = gql`
-  mutation selectRepository($id: ID!, $isSelected: Boolean!) @client  {
-    toggleSelectRepository(id: $id, isSelected: $isSelected, __typename: "store") @client {
+  mutation selectRepository($id: ID!, $isSelected: Boolean!, $typename: String! ) @client  {
+    toggleSelectRepository(id: $id, isSelected: $isSelected, __typename: "repo") @client {
       id @client
       isSelected @client
       __typename

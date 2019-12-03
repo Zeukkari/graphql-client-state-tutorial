@@ -89,7 +89,7 @@ const Select = ({ id, isSelected }) => {
   }
 
   const handleToggle = () => {
-    const isSelected = false;
+    // const isSelected = false;
     const __typename = "repo"
     toggleSelectRepository({ variables: { id, isSelected, __typename } })
   }
