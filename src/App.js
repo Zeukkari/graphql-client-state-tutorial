@@ -1,26 +1,58 @@
 import React from 'react';
-import { Query, Mutation } from 'react-apollo';
-import { GET_SELECTED_REPOSITORIES, SELECT_REPOSITORY } from './apollo';
-
+import { useQuery, useMutation } from '@apollo/react-hooks';
+import { Mutation, Query } from 'react-apollo';
+import { SELECT_REPOSITORY, GET_SELECTED_REPOSITORIES, all, GET_COUNT } from './apollo';
+import { createClient } from './apollo';
 import './App.css';
 
-const App = () => (
-  <div>
-    <Summary count='0' />
-    <Repositories repositories={all} />
-  </div>
-);
 
+
+
+
+const App = () => {
+  const client = createClient();
+  return (
+
+    <div>
+      <Summary count={all.length} />
+      <Repositories repositories={all} />
+
+    </div>
+
+  )
+};
+
+/*
 const Repositories = ({ repositories }) => (
-  <Query query={GET_SELECTED_REPOSITORIES}>
-    {({ data: { selectedRepositoryIds } }) => (
-      <RepositoryList
-        repositories={repositories}
-        selectedRepositoryIds={selectedRepositoryIds}
-      />
-    )}
-  </Query>
-);
+    <Query query={GET_SELECTED_REPOSITORIES}>
+      {({ data }) => {
+        console.log("selectedRe", data)
+        return (
+        <RepositoryList
+          repositories={repositories}
+          selectedRepositoryIds={data}
+        />
+      )}}
+    </Query>
+  );
+*/
+
+const Repositories = ({ repositories }) => {
+  const { data } = useQuery(GET_SELECTED_REPOSITORIES, {
+    fetchPolicy: "cache-only",
+    variables: { language: 'english', __typename: 'store' },
+  });
+  
+  console.log("data222: ", data)
+
+  
+  return (
+    <RepositoryList
+      repositories={repositories}
+      selectedRepositoryIds={data && data.selectedRepositoryIds || []}
+    />
+  )
+};
 
 const RepositoryList = ({ repositories, selectedRepositoryIds }) => (
   <ul>
@@ -42,26 +74,39 @@ const RepositoryList = ({ repositories, selectedRepositoryIds }) => (
   </ul>
 );
 
-const Summary = () => (
-  <Query query={GET_COUNT}>
-    {(data) => {
-      console.log("data: ", data)
-      return (<p> count: {data.count}</p>)
-    }}
-  </Query>
-)
+const Summary = () => {
 
-const Select = ({ id, isSelected }) => (
-  <Mutation
-    mutation={SELECT_REPOSITORY}
-    variables={{ id, isSelected }}
-  >
-    {(toggleSelectRepository) => (
-      <button type="button" onClick={toggleSelectRepository}>
-        {isSelected ? 'Unselect' : 'Select'}
-      </button>
-    )}
-  </Mutation>
-);
+  const { data, loading } = useQuery(GET_SELECTED_REPOSITORIES, {
+    fetchPolicy: "cache-only",
+    variables: { language: 'english', __typename: 'store' },
+  });
+
+    if(loading) {
+      return <div>foo</div>
+    }
+  console.log("Summary count: ", data)
+  return (<p> count: {data && data.count || 0}</p>)
+
+}
+
+const Select = ({ id, isSelected }) => {
+  const [toggleSelectRepository, { data, loading, error }] = useMutation(SELECT_REPOSITORY);
+  console.log("data, loading, error: ", data, loading, error);
+  if(loading) {
+    return <div>foo</div>
+  }
+
+  const handleToggle = () => {
+    const isSelected = false;
+    const __typename = "repo"
+    toggleSelectRepository({ variables: { id, isSelected, __typename } })
+  }
+  return (
+  <button type="button" onClick={handleToggle}>
+    {isSelected ? 'Unselect' : 'Select'}
+  </button>
+  )
+
+};
 
 export default App;
