@@ -5,20 +5,12 @@ import { SELECT_REPOSITORY, GET_SELECTED_REPOSITORIES, all, GET_COUNT } from './
 import { createClient } from './apollo';
 import './App.css';
 
-
-
-
-
 const App = () => {
-  const client = createClient();
   return (
-
     <div>
       <Summary count={all.length} />
       <Repositories repositories={all} />
-
     </div>
-
   )
 };
 
